@@ -1,0 +1,10 @@
+package: github.com/JonPulsifer/go-check-dns
+import:
+- package: github.com/DataDog/datadog-go/statsd
+  version: ^1.1.0
+- package: github.com/sirupsen/logrus
+  version: ^1.0.0
+- package: github.com/jinzhu/now
+- package: golang.org/x/net/context
+- package: golang.org/x/oauth2/google
+- package: google.golang.org/api/dns/v1
