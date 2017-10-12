@@ -1,3 +1,0 @@
-# min	hour	day	month	weekday	command
-# check dns expiry every Monday at 0900
-0      9	*	*	1	/usr/bin/go-check-dns -project kubesec
