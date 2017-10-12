@@ -1,13 +1,16 @@
+FROM golang:1.9-alpine as builder
+RUN apk add --no-cache git
+WORKDIR /go/src/github.com/JonPulsifer/go-check-dns
+COPY . .
+RUN go install -v
+
 FROM alpine:3.6
 LABEL maintainer "Jonathan Pulsifer <jonathan@pulsifer.ca>"
 
 RUN addgroup -S go-check-dns && adduser -S -G go-check-dns go-check-dns \
  && apk add --no-cache tini
 
-COPY go-check-dns /usr/bin/go-check-dns
-COPY crontab /var/spool/cron/crontabs/go-check-dns
+COPY --from=builder /go/bin/go-check-dns /usr/bin/go-check-dns
 
-# need root for now, drop when kubernetes cronjobs are available
-# USER go-check-dns
-ENTRYPOINT ["/sbin/tini", "--"]
-CMD ["/usr/sbin/crond", "-d", "7", "-f"]
+USER go-check-dns
+ENTRYPOINT ["/usr/bin/go-check-dns"]
