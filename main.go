@@ -20,7 +20,7 @@ func init() {
 	if os.Getenv("DEBUG") != "" {
 		log.SetLevel(log.DebugLevel)
 	} else {
-		log.SetLevel(log.WarnLevel)
+		log.SetLevel(log.InfoLevel)
 	}
 	log.SetOutput(os.Stdout)
 }
