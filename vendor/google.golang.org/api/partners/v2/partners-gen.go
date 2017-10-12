@@ -64,9 +64,10 @@ func New(client *http.Client) (*Service, error) {
 }
 
 type Service struct {
-	client    *http.Client
-	BasePath  string // API endpoint base URL
-	UserAgent string // optional additional User-Agent fragment
+	client                    *http.Client
+	BasePath                  string // API endpoint base URL
+	UserAgent                 string // optional additional User-Agent fragment
+	GoogleClientHeaderElement string // client header fragment, for Google use only
 
 	Analytics *AnalyticsService
 
@@ -94,6 +95,10 @@ func (s *Service) userAgent() string {
 		return googleapi.UserAgent
 	}
 	return googleapi.UserAgent + " " + s.UserAgent
+}
+
+func (s *Service) clientHeader() string {
+	return gensupport.GoogleClientHeader("20170210", s.GoogleClientHeaderElement)
 }
 
 func NewAnalyticsService(s *Service) *AnalyticsService {
@@ -799,10 +804,6 @@ type CompanyRelation struct {
 	// @OutputOnly
 	CreationTime string `json:"creationTime,omitempty"`
 
-	// InternalCompanyId: The internal company ID.
-	// Only available for a whitelisted set of api clients.
-	InternalCompanyId string `json:"internalCompanyId,omitempty"`
-
 	// IsPending: The flag that indicates if the company is pending
 	// verification.
 	IsPending bool `json:"isPending,omitempty"`
@@ -819,15 +820,6 @@ type CompanyRelation struct {
 
 	// PhoneNumber: The phone number for the company's primary address.
 	PhoneNumber string `json:"phoneNumber,omitempty"`
-
-	// PrimaryAddress: The primary location of the company.
-	PrimaryAddress *Location `json:"primaryAddress,omitempty"`
-
-	// PrimaryCountryCode: The primary country code of the company.
-	PrimaryCountryCode string `json:"primaryCountryCode,omitempty"`
-
-	// PrimaryLanguageCode: The primary language code of the company.
-	PrimaryLanguageCode string `json:"primaryLanguageCode,omitempty"`
 
 	// ResolvedTimestamp: The timestamp when the user was
 	// approved.
@@ -1491,6 +1483,10 @@ func (s *HistoricalOffer) MarshalJSON() ([]byte, error) {
 //     assert (0.0, -170.0) == NormalizeLatLng(180.0, 10.0)
 //     assert (-90.0, 10.0) == NormalizeLatLng(270.0, 10.0)
 //     assert (90.0, 10.0) == NormalizeLatLng(-270.0, 10.0)
+//
+// The code in logs/storage/validator/logs_validator_traits.cc treats
+// this type
+// as if it were annotated as ST_LOCATION.
 type LatLng struct {
 	// Latitude: The latitude in degrees. It must be in the range [-90.0,
 	// +90.0].
@@ -2358,8 +2354,6 @@ type LogUserEventRequest struct {
 	// certificate.
 	//   "SMB_VIEWED_DOUBLECLICK_CERTIFICATE" - Advertiser viewed
 	// DoubleClick certificate.
-	//   "SMB_VIEWED_MOBILE_SITES_CERTIFICATE" - Advertiser viewed Mobile
-	// Sites certificate.
 	//   "SMB_VIEWED_VIDEO_ADS_CERTIFICATE" - Advertiser viewed VideoAds
 	// certificate.
 	//   "SMB_VIEWED_SHOPPING_CERTIFICATE" - Advertiser clicked Shopping
@@ -2996,10 +2990,6 @@ type User struct {
 	// Id: The ID of the user.
 	Id string `json:"id,omitempty"`
 
-	// InternalId: The internal user ID.
-	// Only available for a whitelisted set of api clients.
-	InternalId string `json:"internalId,omitempty"`
-
 	// LastAccessTime: The most recent time the user interacted with the
 	// Partners site.
 	// @OutputOnly
@@ -3314,6 +3304,7 @@ func (c *AnalyticsListCall) doRequest(alt string) (*http.Response, error) {
 		reqHeaders[k] = v
 	}
 	reqHeaders.Set("User-Agent", c.s.userAgent())
+	reqHeaders.Set("x-goog-api-client", c.s.clientHeader())
 	if c.ifNoneMatch_ != "" {
 		reqHeaders.Set("If-None-Match", c.ifNoneMatch_)
 	}
@@ -3497,6 +3488,7 @@ func (c *ClientMessagesLogCall) doRequest(alt string) (*http.Response, error) {
 		reqHeaders[k] = v
 	}
 	reqHeaders.Set("User-Agent", c.s.userAgent())
+	reqHeaders.Set("x-goog-api-client", c.s.clientHeader())
 	var body io.Reader = nil
 	body, err := googleapi.WithoutDataWrapper.JSONReader(c.logmessagerequest)
 	if err != nil {
@@ -3727,6 +3719,7 @@ func (c *CompaniesGetCall) doRequest(alt string) (*http.Response, error) {
 		reqHeaders[k] = v
 	}
 	reqHeaders.Set("User-Agent", c.s.userAgent())
+	reqHeaders.Set("x-goog-api-client", c.s.clientHeader())
 	if c.ifNoneMatch_ != "" {
 		reqHeaders.Set("If-None-Match", c.ifNoneMatch_)
 	}
@@ -4190,6 +4183,7 @@ func (c *CompaniesListCall) doRequest(alt string) (*http.Response, error) {
 		reqHeaders[k] = v
 	}
 	reqHeaders.Set("User-Agent", c.s.userAgent())
+	reqHeaders.Set("x-goog-api-client", c.s.clientHeader())
 	if c.ifNoneMatch_ != "" {
 		reqHeaders.Set("If-None-Match", c.ifNoneMatch_)
 	}
@@ -4502,6 +4496,7 @@ func (c *CompaniesLeadsCreateCall) doRequest(alt string) (*http.Response, error)
 		reqHeaders[k] = v
 	}
 	reqHeaders.Set("User-Agent", c.s.userAgent())
+	reqHeaders.Set("x-goog-api-client", c.s.clientHeader())
 	var body io.Reader = nil
 	body, err := googleapi.WithoutDataWrapper.JSONReader(c.createleadrequest)
 	if err != nil {
@@ -4703,6 +4698,7 @@ func (c *ExamsGetTokenCall) doRequest(alt string) (*http.Response, error) {
 		reqHeaders[k] = v
 	}
 	reqHeaders.Set("User-Agent", c.s.userAgent())
+	reqHeaders.Set("x-goog-api-client", c.s.clientHeader())
 	if c.ifNoneMatch_ != "" {
 		reqHeaders.Set("If-None-Match", c.ifNoneMatch_)
 	}
@@ -4974,6 +4970,7 @@ func (c *LeadsListCall) doRequest(alt string) (*http.Response, error) {
 		reqHeaders[k] = v
 	}
 	reqHeaders.Set("User-Agent", c.s.userAgent())
+	reqHeaders.Set("x-goog-api-client", c.s.clientHeader())
 	if c.ifNoneMatch_ != "" {
 		reqHeaders.Set("If-None-Match", c.ifNoneMatch_)
 	}
@@ -5229,6 +5226,7 @@ func (c *OffersListCall) doRequest(alt string) (*http.Response, error) {
 		reqHeaders[k] = v
 	}
 	reqHeaders.Set("User-Agent", c.s.userAgent())
+	reqHeaders.Set("x-goog-api-client", c.s.clientHeader())
 	if c.ifNoneMatch_ != "" {
 		reqHeaders.Set("If-None-Match", c.ifNoneMatch_)
 	}
@@ -5481,6 +5479,7 @@ func (c *OffersHistoryListCall) doRequest(alt string) (*http.Response, error) {
 		reqHeaders[k] = v
 	}
 	reqHeaders.Set("User-Agent", c.s.userAgent())
+	reqHeaders.Set("x-goog-api-client", c.s.clientHeader())
 	if c.ifNoneMatch_ != "" {
 		reqHeaders.Set("If-None-Match", c.ifNoneMatch_)
 	}
@@ -5672,6 +5671,7 @@ func (c *UserEventsLogCall) doRequest(alt string) (*http.Response, error) {
 		reqHeaders[k] = v
 	}
 	reqHeaders.Set("User-Agent", c.s.userAgent())
+	reqHeaders.Set("x-goog-api-client", c.s.clientHeader())
 	var body io.Reader = nil
 	body, err := googleapi.WithoutDataWrapper.JSONReader(c.logusereventrequest)
 	if err != nil {
@@ -5858,6 +5858,7 @@ func (c *UserStatesListCall) doRequest(alt string) (*http.Response, error) {
 		reqHeaders[k] = v
 	}
 	reqHeaders.Set("User-Agent", c.s.userAgent())
+	reqHeaders.Set("x-goog-api-client", c.s.clientHeader())
 	if c.ifNoneMatch_ != "" {
 		reqHeaders.Set("If-None-Match", c.ifNoneMatch_)
 	}
@@ -6070,6 +6071,7 @@ func (c *UsersCreateCompanyRelationCall) doRequest(alt string) (*http.Response, 
 		reqHeaders[k] = v
 	}
 	reqHeaders.Set("User-Agent", c.s.userAgent())
+	reqHeaders.Set("x-goog-api-client", c.s.clientHeader())
 	var body io.Reader = nil
 	body, err := googleapi.WithoutDataWrapper.JSONReader(c.companyrelation)
 	if err != nil {
@@ -6296,6 +6298,7 @@ func (c *UsersDeleteCompanyRelationCall) doRequest(alt string) (*http.Response, 
 		reqHeaders[k] = v
 	}
 	reqHeaders.Set("User-Agent", c.s.userAgent())
+	reqHeaders.Set("x-goog-api-client", c.s.clientHeader())
 	var body io.Reader = nil
 	c.urlParams_.Set("alt", alt)
 	urls := googleapi.ResolveRelative(c.s.BasePath, "v2/users/{userId}/companyRelation")
@@ -6536,6 +6539,7 @@ func (c *UsersGetCall) doRequest(alt string) (*http.Response, error) {
 		reqHeaders[k] = v
 	}
 	reqHeaders.Set("User-Agent", c.s.userAgent())
+	reqHeaders.Set("x-goog-api-client", c.s.clientHeader())
 	if c.ifNoneMatch_ != "" {
 		reqHeaders.Set("If-None-Match", c.ifNoneMatch_)
 	}
@@ -6768,6 +6772,7 @@ func (c *UsersUpdateProfileCall) doRequest(alt string) (*http.Response, error) {
 		reqHeaders[k] = v
 	}
 	reqHeaders.Set("User-Agent", c.s.userAgent())
+	reqHeaders.Set("x-goog-api-client", c.s.clientHeader())
 	var body io.Reader = nil
 	body, err := googleapi.WithoutDataWrapper.JSONReader(c.userprofile)
 	if err != nil {
@@ -6994,6 +6999,7 @@ func (c *V2GetPartnersstatusCall) doRequest(alt string) (*http.Response, error) 
 		reqHeaders[k] = v
 	}
 	reqHeaders.Set("User-Agent", c.s.userAgent())
+	reqHeaders.Set("x-goog-api-client", c.s.clientHeader())
 	if c.ifNoneMatch_ != "" {
 		reqHeaders.Set("If-None-Match", c.ifNoneMatch_)
 	}
@@ -7213,6 +7219,7 @@ func (c *V2UpdateCompaniesCall) doRequest(alt string) (*http.Response, error) {
 		reqHeaders[k] = v
 	}
 	reqHeaders.Set("User-Agent", c.s.userAgent())
+	reqHeaders.Set("x-goog-api-client", c.s.clientHeader())
 	var body io.Reader = nil
 	body, err := googleapi.WithoutDataWrapper.JSONReader(c.company)
 	if err != nil {
@@ -7442,6 +7449,7 @@ func (c *V2UpdateLeadsCall) doRequest(alt string) (*http.Response, error) {
 		reqHeaders[k] = v
 	}
 	reqHeaders.Set("User-Agent", c.s.userAgent())
+	reqHeaders.Set("x-goog-api-client", c.s.clientHeader())
 	var body io.Reader = nil
 	body, err := googleapi.WithoutDataWrapper.JSONReader(c.lead)
 	if err != nil {

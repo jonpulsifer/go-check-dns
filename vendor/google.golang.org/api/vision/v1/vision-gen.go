@@ -61,9 +61,10 @@ func New(client *http.Client) (*Service, error) {
 }
 
 type Service struct {
-	client    *http.Client
-	BasePath  string // API endpoint base URL
-	UserAgent string // optional additional User-Agent fragment
+	client                    *http.Client
+	BasePath                  string // API endpoint base URL
+	UserAgent                 string // optional additional User-Agent fragment
+	GoogleClientHeaderElement string // client header fragment, for Google use only
 
 	Images *ImagesService
 }
@@ -73,6 +74,10 @@ func (s *Service) userAgent() string {
 		return googleapi.UserAgent
 	}
 	return googleapi.UserAgent + " " + s.UserAgent
+}
+
+func (s *Service) clientHeader() string {
+	return gensupport.GoogleClientHeader("20170210", s.GoogleClientHeaderElement)
 }
 
 func NewImagesService(s *Service) *ImagesService {
@@ -736,10 +741,11 @@ type DetectedBreak struct {
 	//   "SPACE" - Regular space.
 	//   "SURE_SPACE" - Sure space (very wide).
 	//   "EOL_SURE_SPACE" - Line-wrapping break.
-	//   "HYPHEN" - End-line hyphen that is not present in text; does not
-	// co-occur with
-	// `SPACE`, `LEADER_SPACE`, or `LINE_BREAK`.
-	//   "LINE_BREAK" - Line break that ends a paragraph.
+	//   "HYPHEN" - End-line hyphen that is not present in text; does
+	//   "LINE_BREAK" - not co-occur with SPACE, LEADER_SPACE,
+	// or
+	// LINE_BREAK.
+	// Line break that ends a paragraph.
 	Type string `json:"type,omitempty"`
 
 	// ForceSendFields is a list of field names (e.g. "IsPrefix") to
@@ -1504,6 +1510,10 @@ func (s *Landmark) MarshalJSON() ([]byte, error) {
 //     assert (0.0, -170.0) == NormalizeLatLng(180.0, 10.0)
 //     assert (-90.0, 10.0) == NormalizeLatLng(270.0, 10.0)
 //     assert (90.0, 10.0) == NormalizeLatLng(-270.0, 10.0)
+//
+// The code in logs/storage/validator/logs_validator_traits.cc treats
+// this type
+// as if it were annotated as ST_LOCATION.
 type LatLng struct {
 	// Latitude: The latitude in degrees. It must be in the range [-90.0,
 	// +90.0].
@@ -1913,7 +1923,7 @@ func (s *SafeSearchAnnotation) MarshalJSON() ([]byte, error) {
 // arbitrary
 // information about the error. There is a predefined set of error
 // detail types
-// in the package `google.rpc` that can be used for common error
+// in the package `google.rpc` which can be used for common error
 // conditions.
 //
 // # Language mapping
@@ -1946,7 +1956,7 @@ func (s *SafeSearchAnnotation) MarshalJSON() ([]byte, error) {
 //
 // - Workflow errors. A typical workflow has multiple steps. Each step
 // may
-//     have a `Status` message for error reporting.
+//     have a `Status` message for error reporting purpose.
 //
 // - Batch operations. If a client uses batch request and batch
 // response, the
@@ -2167,7 +2177,9 @@ func (s *Vertex) MarshalJSON() ([]byte, error) {
 // WebDetection: Relevant information for the image from the Internet.
 type WebDetection struct {
 	// FullMatchingImages: Fully matching images from the Internet.
-	// Can include resized copies of the query image.
+	// They're definite neardups and most often a copy of the query image
+	// with
+	// merely a size change.
 	FullMatchingImages []*WebImage `json:"fullMatchingImages,omitempty"`
 
 	// PagesWithMatchingImages: Web pages containing the matching images
@@ -2181,9 +2193,6 @@ type WebDetection struct {
 	// example an original image will likely have partial matching for its
 	// crops.
 	PartialMatchingImages []*WebImage `json:"partialMatchingImages,omitempty"`
-
-	// VisuallySimilarImages: The visually similar image results.
-	VisuallySimilarImages []*WebImage `json:"visuallySimilarImages,omitempty"`
 
 	// WebEntities: Deduced entities from similar images on the Internet.
 	WebEntities []*WebEntity `json:"webEntities,omitempty"`
@@ -2454,6 +2463,7 @@ func (c *ImagesAnnotateCall) doRequest(alt string) (*http.Response, error) {
 		reqHeaders[k] = v
 	}
 	reqHeaders.Set("User-Agent", c.s.userAgent())
+	reqHeaders.Set("x-goog-api-client", c.s.clientHeader())
 	var body io.Reader = nil
 	body, err := googleapi.WithoutDataWrapper.JSONReader(c.batchannotateimagesrequest)
 	if err != nil {

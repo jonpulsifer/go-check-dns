@@ -52,8 +52,6 @@ var (
 	contextPkg     = flag.String("context_pkg", "golang.org/x/net/context", "Go package path of the 'context' package.")
 	gensupportPkg  = flag.String("gensupport_pkg", "google.golang.org/api/gensupport", "Go package path of the 'api/gensupport' support package.")
 	googleapiPkg   = flag.String("googleapi_pkg", "google.golang.org/api/googleapi", "Go package path of the 'api/googleapi' support package.")
-
-	serviceTypes = []string{"Service", "APIService"}
 )
 
 // API represents an API to generate, as well as its state while it's
@@ -394,15 +392,10 @@ func (a *API) Target() string {
 // (typically "Service").
 func (a *API) ServiceType() string {
 	switch a.Name {
-	case "appengine", "content": // retained for historical compatibility.
+	case "appengine", "content", "servicemanagement", "serviceuser":
 		return "APIService"
 	default:
-		for _, t := range serviceTypes {
-			if _, ok := a.schemas[t]; !ok {
-				return t
-			}
-		}
-		panic("all service types are used, please consider introducing a new type to serviceTypes.")
+		return "Service"
 	}
 }
 
@@ -580,7 +573,6 @@ func (a *API) GenerateCode() ([]byte, error) {
 	pn("const basePath = %q", a.apiBaseURL())
 
 	a.generateScopeConstants()
-	a.PopulateSchemas()
 
 	service := a.ServiceType()
 
@@ -614,6 +606,8 @@ func (a *API) GenerateCode() ([]byte, error) {
 	for _, res := range a.doc.Resources {
 		a.generateResource(res)
 	}
+
+	a.PopulateSchemas()
 
 	a.responseTypes = make(map[string]bool)
 	for _, meth := range a.APIMethods() {
@@ -769,11 +763,7 @@ var pointerFields = []fieldName{
 	{api: "cloudmonitoring:v2beta2", schema: "Point", field: "DoubleValue"},
 	{api: "cloudmonitoring:v2beta2", schema: "Point", field: "Int64Value"},
 	{api: "cloudmonitoring:v2beta2", schema: "Point", field: "StringValue"},
-	{api: "compute:alpha", schema: "Scheduling", field: "AutomaticRestart"},
-	{api: "compute:beta", schema: "MetadataItems", field: "Value"},
-	{api: "compute:beta", schema: "Scheduling", field: "AutomaticRestart"},
 	{api: "compute:v1", schema: "MetadataItems", field: "Value"},
-	{api: "compute:v1", schema: "Scheduling", field: "AutomaticRestart"},
 	{api: "content:v2", schema: "AccountUser", field: "Admin"},
 	{api: "datastore:v1beta2", schema: "Property", field: "BlobKeyValue"},
 	{api: "datastore:v1beta2", schema: "Property", field: "BlobValue"},
@@ -798,7 +788,6 @@ var pointerFields = []fieldName{
 	{api: "servicecontrol:v1", schema: "MetricValue", field: "DoubleValue"},
 	{api: "servicecontrol:v1", schema: "MetricValue", field: "Int64Value"},
 	{api: "servicecontrol:v1", schema: "MetricValue", field: "StringValue"},
-	{api: "sqladmin:v1beta4", schema: "Settings", field: "StorageAutoResize"},
 	{api: "tasks:v1", schema: "Task", field: "Completed"},
 	{api: "youtube:v3", schema: "ChannelSectionSnippet", field: "Position"},
 }
