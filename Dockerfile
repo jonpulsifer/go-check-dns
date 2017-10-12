@@ -1,4 +1,4 @@
-FROM golang:1.9-alpine as builder
+FROM golang:1.9.1-alpine as builder
 RUN apk add --no-cache git
 WORKDIR /go/src/github.com/JonPulsifer/go-check-dns
 COPY . .
